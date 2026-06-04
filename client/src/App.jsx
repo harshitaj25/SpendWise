@@ -4,16 +4,24 @@ import ExpenseList from "./components/ExpenseList";
 import ExpenseForm from "./components/ExpenseForm";
 import SummaryCards from "./components/SummaryCards";
 import CategoryChart from "./components/CategoryChart";
+import Login from "./components/Login";
 
 function App() {
+
 
   const [selectedCategory, setSelectedCategory] =
     useState("");
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState([]);
+
   const [summary, setSummary] = useState({});
   const [editingExpense, setEditingExpense] =
     useState(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isLoggedIn, setIsLoggedIn] =
+    useState(false);
+
 
   const refreshData = async () => {
     await fetchExpenses();
@@ -85,8 +93,17 @@ function App() {
 
   useEffect(() => {
 
-    fetchExpenses();
-    fetchSummary();
+    const token =
+      localStorage.getItem("token");
+
+    if (token) {
+
+      setIsLoggedIn(true);
+
+      fetchExpenses();
+      fetchSummary();
+
+    }
 
   }, []);
   const filteredExpenses =
@@ -103,53 +120,154 @@ function App() {
         selectedCategory === "" ||
         expense.category ===
         selectedCategory;
-
+      const matchesDate =
+        (!startDate ||
+          expense.date >= startDate) &&
+        (!endDate ||
+          expense.date <= endDate);
       return (
         matchesSearch &&
-        matchesCategory
+        matchesCategory &&
+        matchesDate
       );
 
     });
 
-  return (
-    <div className="app-container">
-      <h1>Expense Tracker</h1>
 
+  const exportCSV = () => {
+
+    const headers = [
+      "Amount",
+      "Category",
+      "Date",
+      "Note"
+    ];
+
+    const rows = filteredExpenses.map(
+      (expense) => [
+        expense.amount,
+        expense.category,
+        expense.date,
+        expense.note
+      ]
+    );
+
+    const csvContent = [
+      headers,
+      ...rows
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob(
+      [csvContent],
+      { type: "text/csv" }
+    );
+
+    const url =
+      window.URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+    link.download = "expenses.csv";
+
+    link.click();
+
+    window.URL.revokeObjectURL(url);
+  };
+
+
+  if (!isLoggedIn) {
+
+    return (
+      <Login
+        setIsLoggedIn={setIsLoggedIn}
+      />
+    );
+
+  }
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+<div>
+      <h1 className="text-4xl font-bold text-center mb-8">
+        SpendWise Dashboard
+      </h1>
+  <button
+    onClick={() => {
+
+      localStorage.removeItem("token");
+      setIsLoggedIn(false);
+
+    }}
+    className="bg-red-600 text-white px-4 py-2 rounded-lg"
+  >
+    Logout
+  </button>
+  </div>
       <ExpenseForm
         onExpenseAdded={refreshData}
         editingExpense={editingExpense}
         setEditingExpense={setEditingExpense}
       />
+
       <div className="dashboard">
-
         <SummaryCards summary={summary} />
-
         <CategoryChart summary={summary} />
-
       </div>
-      <input
-        type="text"
-        placeholder="Search category..."
-        value={search}
-        onChange={(e) =>
-          setSearch(e.target.value)
-        }
-      />
-      <select
-        value={selectedCategory}
-        onChange={(e) =>
-          setSelectedCategory(e.target.value)
-        }
-      >
-        <option value="">
-          All Categories
-        </option>
+
+      <div className="flex gap-4 mb-6 mt-6">
+
+        <button
+          onClick={exportCSV}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+        >
+          Export CSV
+        </button>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) =>
+            setStartDate(e.target.value)
+          }
+          className="border p-2 rounded-lg"
+        />
+
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) =>
+            setEndDate(e.target.value)
+          }
+          className="border p-2 rounded-lg"
+        />
+
+
+
+
+
+
+
+
+
+
+        <input
+          type="text"
+          placeholder="Search category..."
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          className="border p-2 rounded-lg bg-white"
+        />
 
         <select
           value={selectedCategory}
           onChange={(e) =>
             setSelectedCategory(e.target.value)
           }
+          className="border p-2 rounded-lg bg-white"
         >
           <option value="">
             All Categories
@@ -169,12 +287,15 @@ function App() {
           ))}
         </select>
 
-      </select>
+      </div>
+      {/* <Login setIsLoggedIn={setIsLoggedIn} /> */}
+
       <ExpenseList
         expenses={filteredExpenses}
         onDelete={handleDelete}
         onEdit={handleEdit}
       />
+
     </div>
   );
 }

@@ -84,42 +84,63 @@ function ExpenseForm({
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-
-            <h2>Add Expense</h2>
-
-            <input
-                type="number"
-                placeholder="Amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-            />
-
-            <input
-                type="text"
-                placeholder="Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-            />
-
-            <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-            />
-
-            <input
-                type="text"
-                placeholder="Note"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-            />
-
-            <button type="submit">
+        <form
+            onSubmit={handleSubmit}
+            className="bg-white shadow-md rounded-xl p-6 mb-8 max-w-5xl mx-auto"
+        >
+            <h2 className="text-2xl font-bold text-center mb-6">
                 {editingExpense
-                    ? "Update Expense"
+                    ? "Edit Expense"
                     : "Add Expense"}
-            </button>
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <input
+                    type="number"
+                    placeholder="Amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <input
+                    type="text"
+                    placeholder="Note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+            </div>
+
+            <div className="flex justify-center mt-6">
+
+                <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                >
+                    {editingExpense
+                        ? "Update Expense"
+                        : "Add Expense"}
+                </button>
+
+            </div>
         </form>
     );
 }
