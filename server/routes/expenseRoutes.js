@@ -1,46 +1,57 @@
+const authMiddleware =
+    require("../middleware/authMiddleware");
+
 const db = require("../db/database");
 const express = require("express");
 
 const router = express.Router();
 
-router.post("/", (req, res) => {
 
-    const { amount, category, date, note } = req.body;
+router.post("/",
+    authMiddleware, (req, res) => {
 
-    if (!amount || !category || !date) {
+        const { amount, category, date, note } = req.body;
 
-        return res.status(400).json({
-            message: "Required fields missing"
-        });
+        if (!amount || !category || !date) {
 
-    }
-
-    db.run(
-        `
-  INSERT INTO expenses
-  (amount, category, date, note)
-  VALUES (?, ?, ?, ?)
-  `,
-        [amount, category, date, note],
-        function (err) {
-
-            if (err) {
-
-                return res.status(500).json({
-                    message: err.message
-                });
-
-            }
-
-            res.status(201).json({
-                message: "Expense added successfully",
-                id: this.lastID
+            return res.status(400).json({
+                message: "Required fields missing"
             });
 
         }
-    );
 
-});
+        db.run(
+            `
+ INSERT INTO expenses
+(amount, category, date, note, userId)
+VALUES (?, ?, ?, ?, ?)
+  `,
+            [
+                amount,
+                category,
+                date,
+                note,
+                req.user.id
+            ],
+            function (err) {
+
+                if (err) {
+
+                    return res.status(500).json({
+                        message: err.message
+                    });
+
+                }
+
+                res.status(201).json({
+                    message: "Expense added successfully",
+                    id: this.lastID
+                });
+
+            }
+        );
+
+    });
 router.get("/summary", (req, res) => {
 
     db.all(
@@ -90,73 +101,107 @@ router.get("/summary", (req, res) => {
     );
 
 });
-router.get("/", (req, res) => {
+// router.get(
+//     "/",
+//     authMiddleware,
+//     (req, res) => {
+//         console.log(req.user);
+//         const category = req.query.category;
+//         const startDate = req.query.startDate;
+//         const endDate = req.query.endDate;
 
-    const category = req.query.category;
-    const startDate = req.query.startDate;
-    const endDate = req.query.endDate;
+//         let query = `
+//     SELECT *
+//     FROM expenses
+//     WHERE userId = ?
+// `;
 
-    let query = `
-    SELECT *
-    FROM expenses
-  `;
+//         let params = [req.user.id];
 
-    let params = [];
+//         // let params = [];
 
-    if (category) {
-        if (startDate && endDate) {
+//         if (category) {
+//             if (startDate && endDate) {
 
-            if (category) {
+//                 if (category) {
 
-                query += `
-      AND date BETWEEN ? AND ?
-    `;
+//                     query += `
+//       AND date BETWEEN ? AND ?
+//     `;
 
-            } else {
+//                 } else {
 
-                query += `
-      WHERE date BETWEEN ? AND ?
-    `;
+//                     query += `
+//       WHERE date BETWEEN ? AND ?
+//     `;
+
+//                 }
+
+//                 params.push(startDate);
+//                 params.push(endDate);
+
+//             }
+
+//             query += `
+//       WHERE category = ?
+//     `;
+
+//             params.push(category);
+
+//         }
+
+//         query += `
+//     ORDER BY date DESC
+//   `;
+
+//         db.all(
+//             query,
+//             params,
+//             (err, rows) => {
+
+//                 if (err) {
+
+//                     return res.status(500).json({
+//                         message: err.message
+//                     });
+
+//                 }
+
+//                 res.json(rows);
+
+//             }
+//         );
+
+//     });
+router.get(
+    "/",
+    authMiddleware,
+    (req, res) => {
+
+        db.all(
+            `
+            SELECT *
+            FROM expenses
+            WHERE userId = ?
+            ORDER BY date DESC
+            `,
+            [req.user.id],
+            (err, rows) => {
+
+                if (err) {
+                    return res.status(500).json({
+                        message: err.message
+                    });
+                }
+
+                res.json(rows);
 
             }
-
-            params.push(startDate);
-            params.push(endDate);
-
-        }
-
-        query += `
-      WHERE category = ?
-    `;
-
-        params.push(category);
+        );
 
     }
-
-    query += `
-    ORDER BY date DESC
-  `;
-
-    db.all(
-        query,
-        params,
-        (err, rows) => {
-
-            if (err) {
-
-                return res.status(500).json({
-                    message: err.message
-                });
-
-            }
-
-            res.json(rows);
-
-        }
-    );
-
-});
-router.delete("/:id", (req, res) => {
+);
+router.delete("/:id", authMiddleware, (req, res) => {
 
     const id = req.params.id;
 
@@ -189,7 +234,7 @@ router.delete("/:id", (req, res) => {
     );
 
 });
-router.put("/:id", (req, res) => {
+router.put("/:id", authMiddleware, (req, res) => {
 
     const { id } = req.params;
 
@@ -219,7 +264,7 @@ router.put("/:id", (req, res) => {
     );
 
 });
-router.put("/:id", (req, res) => {
+router.put("/:id", authMiddleware, (req, res) => {
 
     const id = req.params.id;
 
