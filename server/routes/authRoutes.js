@@ -117,9 +117,13 @@ router.post("/login", (req, res) => {
             );
 
             res.json({
-                message:
-                    "Login successful",
-                token
+                message: "Login successful",
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                }
             });
 
         }

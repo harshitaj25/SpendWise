@@ -5,10 +5,17 @@ import ExpenseForm from "./components/ExpenseForm";
 import SummaryCards from "./components/SummaryCards";
 import CategoryChart from "./components/CategoryChart";
 import Login from "./components/Login";
+import Signup from "./components/Signup";
+import { Toaster } from "react-hot-toast";
 
 function App() {
 
-
+  const [user, setUser] =
+    useState(null);
+  const [darkMode, setDarkMode] =
+    useState(false);
+  const [showLogin, setShowLogin] =
+    useState(true);
   const [selectedCategory, setSelectedCategory] =
     useState("");
   const [search, setSearch] = useState("");
@@ -50,6 +57,7 @@ function App() {
     }
 
   };
+
   const handleEdit = (expense) => {
 
     console.log("EDIT CLICKED");
@@ -95,6 +103,17 @@ function App() {
 
     const token =
       localStorage.getItem("token");
+
+    const savedUser =
+      localStorage.getItem("user");
+
+    if (savedUser) {
+
+      setUser(
+        JSON.parse(savedUser)
+      );
+
+    }
 
     if (token) {
 
@@ -181,32 +200,77 @@ function App() {
 
   if (!isLoggedIn) {
 
-    return (
+    return showLogin ? (
+
       <Login
         setIsLoggedIn={setIsLoggedIn}
+        setShowLogin={setShowLogin}
       />
+
+    ) : (
+
+      <Signup
+        setShowLogin={setShowLogin}
+      />
+
     );
 
   }
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-<div>
-      <h1 className="text-4xl font-bold text-center mb-8">
-        SpendWise Dashboard
-      </h1>
-  <button
-    onClick={() => {
+    <div
+      className={`min-h-screen p-6 ${darkMode
+        ? "bg-gray-900 text-white"
+        : "bg-gray-100 text-black"
+        }`}
+    >
+      <Toaster position="top-right" />
+      {/* <button
+        onClick={() =>
+          setDarkMode(!darkMode)
+        }
+        className="bg-gray-700 text-white px-4 py-2 rounded-lg"
+      >
+        {darkMode ? "☀️ Light" : "🌙 Dark"}
+        
+      </button> */}
+      <h2 className="text-center text-xl mb-2 text-green-400">
+        Welcome, {user?.name} 👋
+      </h2>
+      <div>
+        <h1
+          style={{
+            color: "pink",
+            fontSize: "30px",
+            textAlign: "center"
+          }}
+        >
+          SpendWise Dashboard
+        </h1>
+        {/* <button
+          onClick={() => {
 
-      localStorage.removeItem("token");
-      setIsLoggedIn(false);
+            localStorage.removeItem("token");
+            setIsLoggedIn(false);
 
-    }}
-    className="bg-red-600 text-white px-4 py-2 rounded-lg"
-  >
-    Logout
-  </button>
-  </div>
+          }}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg"
+        >
+          Logout
+        </button> */}
+      </div>
+      <button
+        onClick={() =>
+          setDarkMode(!darkMode)
+        }
+        className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${darkMode
+          ? "bg-yellow-500 text-black hover:bg-yellow-400"
+          : "bg-gray-800 text-white hover:bg-gray-700"
+          }`}
+      >
+        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+      </button>
       <ExpenseForm
+        darkMode={darkMode}
         onExpenseAdded={refreshData}
         editingExpense={editingExpense}
         setEditingExpense={setEditingExpense}
@@ -217,7 +281,7 @@ function App() {
         <CategoryChart summary={summary} />
       </div>
 
-      <div className="flex gap-4 mb-6 mt-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-6 mt-6">
 
         <button
           onClick={exportCSV}
@@ -295,6 +359,17 @@ function App() {
         onDelete={handleDelete}
         onEdit={handleEdit}
       />
+      <button
+        onClick={() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setIsLoggedIn(false);
+
+        }}
+        className="bg-red-600 text-white px-4 py-2 rounded-lg"
+      >
+        Logout
+      </button>
 
     </div>
   );

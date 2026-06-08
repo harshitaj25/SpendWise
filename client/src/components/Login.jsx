@@ -2,7 +2,10 @@ import { useState } from "react";
 import api from "../services/api";
 
 
-function Login({ setIsLoggedIn }) {
+function Login({
+    setIsLoggedIn,
+    setShowLogin
+}) {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -10,16 +13,23 @@ function Login({ setIsLoggedIn }) {
         console.log("LOGIN BUTTON CLICKED");
         try {
 
-            const response =
-                await api.post(
-                    "/auth/login",
-                    {
-                        email,
-                        password
-                    }
-                );
+            const response = await api.post(
+                "/auth/login",
+                {
+                    email,
+                    password
+                }
+            );
 
-           setIsLoggedIn(true);
+            localStorage.setItem(
+                "token",
+                response.data.token
+            );
+            localStorage.setItem(
+                "user",
+                JSON.stringify(response.data.user)
+            );
+            setIsLoggedIn(true);
 
             alert("Login Successful!");
 
@@ -42,6 +52,20 @@ function Login({ setIsLoggedIn }) {
             <h2 className="text-2xl font-bold mb-4 text-center">
                 Login
             </h2>
+            <p className="text-center mt-4">
+
+                Don't have an account?
+
+                <button
+                    onClick={() =>
+                        setShowLogin(false)
+                    }
+                    className="text-blue-600 ml-1"
+                >
+                    Sign Up
+                </button>
+
+            </p>
 
             <input
                 type="email"

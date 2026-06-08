@@ -1,6 +1,6 @@
 function SummaryCards({ summary }) {
     return (
-        <div className="flex gap-6 justify-center mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center mb-8">
 
             <div className="bg-white shadow-md rounded-xl p-6 w-60 text-center">
                 <h3 className="text-gray-600 text-lg">

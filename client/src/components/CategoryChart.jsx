@@ -1,5 +1,11 @@
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-
+import {
+    PieChart,
+    Pie,
+    Cell,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from "recharts";
 const COLORS = [
     "#0088FE",
     "#00C49F",
@@ -16,25 +22,29 @@ function CategoryChart({ summary }) {
     }));
 
     return (
-        <PieChart width={320} height={250}>
-            <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={80}
-                label
-            >
-                {data.map((entry, index) => (
-                    <Cell
-                        key={index}
-                        fill={COLORS[index % COLORS.length]}
-                    />
-                ))}
-            </Pie>
+        <div className="w-full h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={100}
+                        label
+                    >
+                        {data.map((entry, index) => (
+                            <Cell
+                                key={index}
+                                fill={COLORS[index % COLORS.length]}
+                            />
+                        ))}
+                    </Pie>
 
-            <Tooltip />
-            <Legend />
-        </PieChart>
+                    <Tooltip />
+                    <Legend />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
     );
 }
 

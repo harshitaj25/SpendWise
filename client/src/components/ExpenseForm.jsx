@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import toast from "react-hot-toast";
 
 function ExpenseForm({
+    darkMode,
     onExpenseAdded,
     editingExpense,
     setEditingExpense
@@ -34,7 +36,7 @@ function ExpenseForm({
 
         e.preventDefault();
         if (!amount || !category.trim() || !date) {
-            alert("Please fill all required fields");
+            toast.error("Please fill all required fields");
             return;
         }
 
@@ -69,7 +71,7 @@ function ExpenseForm({
 
             setEditingExpense(null);
 
-            alert(
+            toast.success(
                 editingExpense
                     ? "Expense Updated!"
                     : "Expense Added!"
@@ -79,6 +81,10 @@ function ExpenseForm({
 
             console.log(error);
 
+            toast.error(
+                "Something went wrong"
+            );
+
         }
 
     };
@@ -86,7 +92,10 @@ function ExpenseForm({
     return (
         <form
             onSubmit={handleSubmit}
-            className="bg-white shadow-md rounded-xl p-6 mb-8 max-w-5xl mx-auto"
+            className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode
+                    ? "bg-gray-700 text-white border-gray-600"
+                    : "bg-white text-black"
+                }`}
         >
             <h2 className="text-2xl font-bold text-center mb-6">
                 {editingExpense

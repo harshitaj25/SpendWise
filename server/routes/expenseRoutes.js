@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/",
     authMiddleware, (req, res) => {
-
+        console.log("POST USER:", req.user);
         const { amount, category, date, note } = req.body;
 
         if (!amount || !category || !date) {
@@ -22,7 +22,7 @@ router.post("/",
 
         db.run(
             `
- INSERT INTO expenses
+INSERT INTO expenses
 (amount, category, date, note, userId)
 VALUES (?, ?, ?, ?, ?)
   `,
@@ -36,6 +36,8 @@ VALUES (?, ?, ?, ?, ?)
             function (err) {
 
                 if (err) {
+
+                    console.log("POST ERROR:", err);
 
                     return res.status(500).json({
                         message: err.message
@@ -52,55 +54,59 @@ VALUES (?, ?, ?, ?, ?)
         );
 
     });
-router.get("/summary", (req, res) => {
+router.get("/summary",
+    authMiddleware,
+    (req, res) => {
+        console.log("POST USER:", req.user);
+        db.all(
+            "   SELECT * FROM expenses WHERE userId = ?",
+            [req.user.id],
+            (err, rows) => {
 
-    db.all(
-        "SELECT * FROM expenses",
-        [],
-        (err, rows) => {
+                if (err) {
 
-            if (err) {
+                    console.log("SUMMARY ERROR:", err);
 
-                return res.status(500).json({
-                    message: err.message
-                });
-
-            }
-
-            const totalSpent = rows.reduce(
-                (sum, expense) => sum + expense.amount,
-                0
-            );
-
-            const highestExpense = Math.max(
-                ...rows.map(expense => expense.amount),
-                0
-            );
-
-            const categoryTotals = {};
-
-            rows.forEach((expense) => {
-
-                if (!categoryTotals[expense.category]) {
-
-                    categoryTotals[expense.category] = 0;
+                    return res.status(500).json({
+                        message: err.message
+                    });
 
                 }
 
-                categoryTotals[expense.category] += expense.amount;
+                const totalSpent = rows.reduce(
+                    (sum, expense) => sum + expense.amount,
+                    0
+                );
 
-            });
+                const highestExpense = Math.max(
+                    ...rows.map(expense => expense.amount),
+                    0
+                );
 
-            res.json({
-                totalSpent,
-                highestExpense,
-                categoryTotals
-            });
+                const categoryTotals = {};
 
-        }
-    );
+                rows.forEach((expense) => {
 
-});
+                    if (!categoryTotals[expense.category]) {
+
+                        categoryTotals[expense.category] = 0;
+
+                    }
+
+                    categoryTotals[expense.category] += expense.amount;
+
+                });
+
+                res.json({
+                    totalSpent,
+                    highestExpense,
+                    categoryTotals
+                });
+
+            }
+        );
+
+    });
 // router.get(
 //     "/",
 //     authMiddleware,
@@ -177,7 +183,7 @@ router.get(
     "/",
     authMiddleware,
     (req, res) => {
-
+        console.log("POST USER:", req.user);
         db.all(
             `
             SELECT *
@@ -189,9 +195,13 @@ router.get(
             (err, rows) => {
 
                 if (err) {
+
+                    console.log("GET ERROR:", err);
+
                     return res.status(500).json({
                         message: err.message
                     });
+
                 }
 
                 res.json(rows);
@@ -201,13 +211,14 @@ router.get(
 
     }
 );
+
 router.delete("/:id", authMiddleware, (req, res) => {
 
     const id = req.params.id;
 
     db.run(
-        "DELETE FROM expenses WHERE id = ?",
-        [id],
+        "DELETE FROM expenses WHERE id = ? AND userId = ?",
+        [id, req.user.id],
         function (err) {
 
             if (err) {
@@ -241,14 +252,21 @@ router.put("/:id", authMiddleware, (req, res) => {
     const { amount, category, date, note } = req.body;
 
     const sql = `
-        UPDATE expenses
-        SET amount = ?, category = ?, date = ?, note = ?
-        WHERE id = ?
-    `;
+    UPDATE expenses
+    SET amount = ?, category = ?, date = ?, note = ?
+    WHERE id = ? AND userId = ?
+`;
 
     db.run(
         sql,
-        [amount, category, date, note, id],
+        [
+            amount,
+            category,
+            date,
+            note,
+            id,
+            req.user.id
+        ],
         function (err) {
 
             if (err) {
@@ -264,55 +282,8 @@ router.put("/:id", authMiddleware, (req, res) => {
     );
 
 });
-router.put("/:id", authMiddleware, (req, res) => {
 
-    const id = req.params.id;
 
-    const { amount, category, date, note } = req.body;
 
-    if (!amount || !category || !date) {
-
-        return res.status(400).json({
-            message: "Required fields missing"
-        });
-
-    }
-
-    db.run(
-        `
-    UPDATE expenses
-    SET amount = ?,
-        category = ?,
-        date = ?,
-        note = ?
-    WHERE id = ?
-    `,
-        [amount, category, date, note, id],
-        function (err) {
-
-            if (err) {
-
-                return res.status(500).json({
-                    message: err.message
-                });
-
-            }
-
-            if (this.changes === 0) {
-
-                return res.status(404).json({
-                    message: "Expense not found"
-                });
-
-            }
-
-            res.json({
-                message: "Expense updated successfully"
-            });
-
-        }
-    );
-
-});
 
 module.exports = router;
