@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://spendwise-backend-thmu.onrender.com/"
+    baseURL: "https://spendwise-backend-thmu.onrender.com/api"
 });
-
 api.interceptors.request.use((config) => {
 
     const token =
